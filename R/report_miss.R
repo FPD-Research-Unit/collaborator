@@ -20,6 +20,7 @@
 #' @importFrom readr read_csv
 #' @importFrom tidyr separate_rows
 #' @importFrom tidyselect all_of
+#' @importFrom redcapAPI exportRecords
 #' @return Nested dataframe with a summary of missing data at the redcap_data_access_group level and the record level.
 #' @export
 
@@ -30,15 +31,45 @@ report_miss <- function(redcap_project_uri, redcap_project_token, use_ssl = TRUE
   # Prepare dataset----------------
   # Load functions / packages
   require(dplyr);require(tibble);require(stringr); require(stringi);require(scales);
-  require(RCurl);require(readr);require(tidyr);require(tidyselect)
+  require(curl);require(readr);require(tidyr);require(tidyselect);require(utils);
+  require(redcapAPI)
 
-  df_record <- RCurl::postForm(uri=redcap_project_uri,
-                               token = redcap_project_token,
-                               content='record',
-                               exportDataAccessGroups = 'true',
-                               .opts = RCurl::curlOptions(ssl.verifypeer = if(use_ssl==F){FALSE}else{TRUE}),
-                               format='csv',
-                               raworLabel="raw")
+  #df_record <- RCurl::postForm(uri=redcap_project_uri,
+  #                             token = redcap_project_token,
+  #                             content='record',
+  #                             exportDataAccessGroups = 'true',
+  #                             .opts = RCurl::curlOptions(ssl.verifypeer = if(use_ssl==F){FALSE}else{TRUE}),
+  #                             format='csv',
+  #                            raworLabel="raw")
+
+  #h1 <- new_handle()
+  #handle_setform(h1,
+  #               'token' = redcap_project_token,
+  #               'content' = 'record',
+  #               'exportDataAccessGroups' = 'true',
+  #               '.opts' = RCurl::curlOptions(ssl.verifypeer = if(use_ssl==F){FALSE}else{TRUE}),
+  #               'csvDelimiter' = ';',
+  #               'format' = 'csv',
+  #               'raworLabel' = "raw")
+
+  #print(rawToChar(curl_fetch_memory(redcap_project_uri, handle = h1)$content))
+
+  records <- exportRecords(
+    rcon,
+    factors = FALSE,
+    fields = NULL,
+    forms = NULL,
+    records = NULL,
+    events = NULL,
+    labels = TRUE,
+    dates = TRUE,
+    survey = TRUE,
+    dag = TRUE,
+    checkboxLabels = FALSE,
+    colClasses = NA
+  )
+
+  df_record <- utils::read.csv(test = rawToChar(curl_fetch_memory(redcap_project_uri, handle = h1)$content), na.strings = "", skipNul = TRUE)
 
   df_record <- suppressWarnings(readr::read_csv(df_record, guess_max = 100000)) %>%
     dplyr::select(-contains("_complete")) %>%
