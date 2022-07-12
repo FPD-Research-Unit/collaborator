@@ -54,7 +54,9 @@ report_miss <- function(redcap_project_uri, redcap_project_token, use_ssl = TRUE
 
   #print(rawToChar(curl_fetch_memory(redcap_project_uri, handle = h1)$content))
 
-  records <- exportRecords(
+  rcon <<- redcapConnection(url = redcap_project_uri, token = token)
+
+  df_record <- exportRecords(
     rcon,
     factors = FALSE,
     fields = NULL,
@@ -69,7 +71,7 @@ report_miss <- function(redcap_project_uri, redcap_project_token, use_ssl = TRUE
     colClasses = NA
   )
 
-  df_record <- utils::read.csv(test = rawToChar(curl_fetch_memory(redcap_project_uri, handle = h1)$content), na.strings = "", skipNul = TRUE)
+  #df_record <- utils::read.csv(test = rawToChar(curl_fetch_memory(redcap_project_uri, handle = h1)$content), na.strings = "", skipNul = TRUE)
 
   df_record <- suppressWarnings(readr::read_csv(df_record, guess_max = 100000)) %>%
     dplyr::select(-contains("_complete")) %>%
