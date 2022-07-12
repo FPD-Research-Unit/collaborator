@@ -54,6 +54,8 @@ report_miss <- function(redcap_project_uri, redcap_project_token, use_ssl = TRUE
 
   #print(rawToChar(curl_fetch_memory(redcap_project_uri, handle = h1)$content))
 
+  rcon <<- redcapConnection(url = redcap_project_uri, token = token)
+
   records <- exportRecords(
     rcon,
     factors = FALSE,
